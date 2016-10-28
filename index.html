@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="format-detection" content="email=no" />
+    <title>首页模板</title>
+    <link rel="stylesheet" type="text/css" href="base.css" />
+    <style>
+
+        img{
+            width:100%;
+
+            display: block;}
+        body{
+            background: #000;}
+        .main{    width: 100%;
+            min-width: 320px;
+            margin: 0 auto;
+            max-width: 640px;
+            font-size: 14px;
+            overflow: hidden;
+            position: relative;
+        }
+        li{
+            width:30%;
+            position: absolute;
+            border:1px #fff solid;
+        }
+        #ul .active {border:1px dashed red;}
+        li:nth-child(1){
+            left:5%;
+            top:10rem;}
+        li:nth-child(2){
+            left:35%;
+            top:10rem;}
+        li:nth-child(3){
+            left:65%;
+            top:10rem;}
+        li:nth-child(4){
+            left:5%;
+            top:18.1rem;}
+        li:nth-child(5){
+            left:35%;
+            top:18.1rem;}
+        li:nth-child(6){
+            left:65%;
+            top:18.1rem;}
+        li:nth-child(7){
+            left:5%;
+            top:26.2rem;}
+        li:nth-child(8){
+            left:35%;
+            top:26.2rem;}
+        li:nth-child(9){
+            left:65%;
+            top:26.2rem;}
+        .move{
+            opacity:0.5;}
+		.start{width:100px;line-height:25px;position:absolute;left:50%;margin-left:-50px;top:10px;text-align:center;display:block}
+
+
+    </style>
+    <script src="jquery.min.js"></script>
+    <script src="darg.js"></script>
+    <script type="text/javascript">
+        $(function(){
+            var width = $(window).width();
+            var height = $(window).height();
+            $('body,.main').css({"width":width,"height":height});
+        })
+    </script>
+</head>
+<body>
+<div class="main">
+	<a href="javascript:;" class="start">开始拼图</a>
+    <ul id="ul">
+        <li><img src="images/game_01.jpg" alt=""></li>
+        <li><img src="images/game_02.jpg" alt=""></li>
+        <li><img src="images/game_03.jpg" alt=""></li>
+        <li><img src="images/game_04.jpg" alt=""></li>
+        <li><img src="images/game_05.jpg" alt=""></li>
+        <li><img src="images/game_06.jpg" alt=""></li>
+        <li><img src="images/game_07.jpg" alt=""></li>
+        <li><img src="images/game_08.jpg" alt=""></li>
+        <li><img src="images/game_09.jpg" alt=""></li>
+    </ul>
+</div>
+
+</body>
+<script type="text/javascript">
+
+	var baseUrl = 'images/game_0';   		//基础url
+	var imgArr=[1,2,3,4,5,6,7,8,9]			//存放图片数字的数组
+	var newArr = imgArr.sort(randomsort);	//打乱图片数组
+    var aPos = [];  						//存放li坐标的数组
+    var $prizeLi = $('#ul li');				//获取可拖拽的li
+	var iMinZindex=2;  						//设置最小的z-index为2
+	/*
+     * 打乱数组函数
+     * */
+    function randomsort(a, b) {
+        return Math.random()>.5 ? -1 : 1;//用Math.random()函数生成0~1之间的随机数与0.5比较，返回-1或1
+    }
+	
+	//开始拼图按钮
+	$('.start').on('click',function(){
+		start();
+	})
+	//点击开始拼图获取各个li的绝对值坐标
+    function start(){			
+		for(var i=0;i<$prizeLi.length;i++){
+			var offset = $prizeLi.eq(i).position();
+			aPos[i]={left: offset.left, top: offset.top};
+			$prizeLi.eq(i).children('img').attr('src',baseUrl+newArr[i]+'.jpg');
+			$prizeLi.eq(i).attr('index',i);
+			$prizeLi.eq(i).attr('id',newArr[i]);
+		}
+	}
+    //拖拽开始
+	$prizeLi.drag({
+		before: function(e) {
+			var e = e || event;
+			//document.title = '拖动前' + e.pageY;
+			iMinZindex++;
+			$(this).addClass('move').css("z-index",iMinZindex);
+		},
+		process: function(e) {
+			var e = e || event;
+			//document.title = '拖动中' + e.pageY;
+			$prizeLi.removeClass('active');
+			//选找距离当前拖拽元素最近的li
+			var oNear=findNearest($(this));
+			if(oNear)
+			{
+				oNear.addClass('active');
+			}
+		},
+		end: function(e) {
+			var e = e || event;
+			$(this).removeClass('move');
+			var oNear=findNearest($(this));			
+			var thisIndex = parseInt($(this).attr('index'));    //获取当前元素的index属性值
+			var oNearIndex = 0;									// 距离当前元素最近的元素的index属性值，此处给了个默认值为零
+			//假如当前元素与周边元素发生碰撞，并找到了距离自己最近的元素时
+			if(oNear) 
+			{
+				oNear.css('z-index',iMinZindex++);
+				$(this).css('z-index',iMinZindex++);
+				
+				oNearIndex = parseInt(oNear.attr('index')) ;
+				thisIndex = parseInt($(this).attr('index'));
+				
+				oNear.animate({'left':aPos[thisIndex].left+'px','top':aPos[thisIndex].top+'px'})
+				$(this).animate({'left':aPos[oNearIndex].left+'px','top':aPos[oNearIndex].top+'px'})	
+				
+				//此处比较关键，交换两者元素的index属性值
+				oNear.attr('index',thisIndex);
+				$(this).attr('index',oNearIndex)
+			}
+			else
+			{
+				 $(this).animate({'left':aPos[thisIndex].left+'px','top':aPos[thisIndex].top+'px'})
+			}
+			$prizeLi.removeClass('active');
+			result();
+		}
+	});
+    //碰撞检测---利用九宫格原理
+    function cdTest(obj1, obj2)
+    {
+        var l1=obj1.position().left;
+        var r1=obj1.position().left+obj1.width();
+        var t1=obj1.position().top;
+        var b1=obj1.position().top+obj1.height();
+
+        var l2=obj2.position().left;
+        var r2=obj2.position().left+obj2.width();
+        var t2=obj2.position().top;
+        var b2=obj2.position().top+obj2.height();
+        if(r1<l2 || l1>r2 || b1<t2 || t1>b2)
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
+	//距离最近--利用勾股定理
+    function getDis(obj1, obj2)
+	{
+        var a=obj1.position().left-obj2.position().left;
+        var b=obj1.position().top-obj2.position().top;
+		
+        return Math.sqrt(a*a+b*b);
+    }
+	
+	//寻找碰上并且最近的那个元素
+    function findNearest(obj)
+    {	
+        var iMin=999999999;  //存放最小值，初次化值要为足够大
+        var iMinIndex=-1;	 //存放找到距离当前元素最近的li在第几位，默认-1为没找到
+        for(i=0;i<$prizeLi.length;i++)
+        {
+			var num1 = obj.attr('index');
+			var num2 = $prizeLi.eq(i).attr('index');
+			
+            if(num1==num2)continue;
+            if(cdTest(obj, $prizeLi.eq(i)))
+            {  			
+                var dis=getDis(obj, $prizeLi.eq(i)); 
+				//判断如果找到了距离比iMin更小的数，把dis赋值给iMin，并把找到的li的位置赋值给iMinIndex
+                if(iMin>dis) 
+                {
+                    iMin=dis;
+                    iMinIndex=i;
+                }
+            }
+        }
+
+        if(iMinIndex==-1)
+        {
+            return null;
+        }
+        else
+        {
+            return $prizeLi.eq(iMinIndex);
+        }
+    }
+	
+	//计算结果
+	function result(){
+		
+	}
+
+</script>
+</html>
