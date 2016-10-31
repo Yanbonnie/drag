@@ -28,6 +28,7 @@
             width:30%;
             position: absolute;
             border:1px #fff solid;
+			z-index:1;
         }
         #ul .active {border:1px dashed red;}
         li:nth-child(1){
@@ -60,6 +61,7 @@
         .move{
             opacity:0.5;}
 		.start{width:100px;line-height:25px;position:absolute;left:50%;margin-left:-50px;top:10px;text-align:center;display:block}
+		.cover{width:100%;height:24.5rem;position:absolute;top:10rem;left:0;background:rgba(255,255,255,0);display:block;z-index:5;}
 
 
     </style>
@@ -87,6 +89,7 @@
         <li><img src="images/game_08.jpg" alt=""></li>
         <li><img src="images/game_09.jpg" alt=""></li>
     </ul>
+	<div class="cover"></div>
 </div>
 
 </body>
@@ -98,6 +101,7 @@
     var aPos = [];  						//存放li坐标的数组
     var $prizeLi = $('#ul li');				//获取可拖拽的li
 	var iMinZindex=2;  						//设置最小的z-index为2
+	var iArr = mArr = [];
 	/*
      * 打乱数组函数
      * */
@@ -107,6 +111,7 @@
 	
 	//开始拼图按钮
 	$('.start').on('click',function(){
+		$('.cover').hide();
 		start();
 	})
 	//点击开始拼图获取各个li的绝对值坐标
@@ -165,7 +170,19 @@
 				 $(this).animate({'left':aPos[thisIndex].left+'px','top':aPos[thisIndex].top+'px'})
 			}
 			$prizeLi.removeClass('active');
-			result();
+			iArr = [];
+			mArr = [];
+			$prizeLi.each(function(){
+				iArr.push(parseInt($(this).attr('index')));
+				mArr.push(parseInt($(this).attr('id')));
+			});
+			if(result(iArr, mArr)){
+				$('.cover').show();
+				$('#ul li').css('pointer-events','none');
+				setTimeout(function(){					
+					alert('ok')
+				},600)
+			}
 		}
 	});
     //碰撞检测---利用九宫格原理
@@ -232,8 +249,11 @@
     }
 	
 	//计算结果
-	function result(){
-		
+	function result(iArr, mArr){
+		for(i=0; i<iArr.length; i++){
+			iArr[i] = iArr[i]+1;
+		}
+		return JSON.stringify(iArr)==JSON.stringify(mArr) ? true : false;
 	}
 
 </script>
